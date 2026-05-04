@@ -1,0 +1,290 @@
+<style>
+  #vif * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #vif {
+    font-family: 'Trebuchet MS', Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+    max-width: 700px;
+    padding: 24px 0 40px;
+  }
+
+  #vif .page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    border-left: 4px solid #e8400c;
+    padding-left: 12px;
+  }
+  #vif .page-sub {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 22px;
+    padding-left: 16px;
+  }
+
+  #vif .error-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-left: 4px solid #e8400c;
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 16px;
+    display: none;
+  }
+  #vif .error-box.visible { display: block; }
+
+  #vif .card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  #vif .field { margin-bottom: 16px; }
+  #vif .field:last-child { margin-bottom: 0; }
+
+  #vif label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 5px;
+  }
+  #vif label .req { color: #e8400c; margin-left: 2px; }
+
+  #vif input[type="text"],
+  #vif input[type="email"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #vif input[type="text"]:focus,
+  #vif input[type="email"]:focus {
+    border-color: #e8400c;
+    box-shadow: 0 0 0 2px rgba(232,64,12,0.08);
+  }
+  #vif input.vif-error { border-color: #e8400c; background: #fff8f6; }
+
+  #vif .submit-row { margin-top: 20px; }
+
+  #vif .result-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 20px 24px;
+  }
+  #vif .result-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+  }
+  #vif .result-url {
+    background: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    color: #555;
+    word-break: break-all;
+    line-height: 1.6;
+    min-height: 44px;
+  }
+  #vif .result-url.vif-empty { color: #bbb; font-style: italic; font-family: inherit; font-size: 13px; }
+
+  #vif .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+
+  #vif .vif-btn {
+    padding: 9px 20px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  #vif .vif-btn:disabled { opacity: 0.4; cursor: default; }
+  #vif .vif-btn-primary { background: #e8400c; color: #fff; }
+  #vif .vif-btn-primary:hover:not(:disabled) { background: #c83508; }
+  #vif .vif-btn-secondary { background: #fff; color: #444; border: 1px solid #ccc; }
+  #vif .vif-btn-secondary:hover:not(:disabled) { background: #f4f4f4; }
+  #vif .vif-btn-submit { background: #e8400c; color: #fff; padding: 10px 26px; font-size: 14px; }
+  #vif .vif-btn-submit:hover { background: #c83508; }
+
+  #vif .copy-feedback { font-size: 12px; color: #2e7d32; min-height: 18px; margin-top: 6px; }
+
+  #vif .notice {
+    font-size: 12px;
+    color: #999;
+    margin-top: 16px;
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+  }
+</style>
+
+<div id="vif">
+  <div class="page-title">Projectevaluatie voorinvulformulier</div>
+  <div class="page-sub">Vul onderstaande gegevens in om een gepersonaliseerde link voor de klant te genereren.</div>
+
+  <div class="error-box" id="vif-error-box">
+    Enkele gegevens ontbreken of zijn onjuist. Vul alle verplichte velden in.
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label>Projectnummer <span class="req">*</span></label>
+      <input type="text" id="vif-projectnr" placeholder="bijv. 2024-0123" oninput="vifGenerate()">
+    </div>
+    <div class="field">
+      <label>Omschrijving project <span class="req">*</span></label>
+      <input type="text" id="vif-project" placeholder="bijv. EPD-selectie ZorgXL" oninput="vifGenerate()">
+    </div>
+    <div class="field">
+      <label>Organisatie <span class="req">*</span></label>
+      <input type="text" id="vif-organisatie" placeholder="bijv. Gemeente Rotterdam" oninput="vifGenerate()">
+    </div>
+    <div class="field">
+      <label>Ingevuld door <span style="font-weight:400">(naam klant/opdrachtgever)</span> <span class="req">*</span></label>
+      <input type="text" id="vif-beoordelaar" placeholder="bijv. J. de Vries" oninput="vifGenerate()">
+    </div>
+    <div class="field">
+      <label>E-mail <span style="font-weight:400">(van invuller)</span></label>
+      <input type="email" id="vif-email" placeholder="bijv. j.devries@organisatie.nl" oninput="vifGenerate()">
+    </div>
+    <div class="field">
+      <label>Medewerkers M&amp;I/Partners <span class="req">*</span></label>
+      <input type="text" id="vif-medewerkers" placeholder="bijv. Anna Bakker, Tom Jansen" oninput="vifGenerate()">
+    </div>
+    <div class="submit-row">
+      <button class="vif-btn vif-btn-submit" onclick="vifHandleSubmit()">Gebruik onderstaande link</button>
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="result-label">Gegenereerde link voor de klant</div>
+    <div class="result-url vif-empty" id="vif-result-url">Vul bovenstaande velden in om een link te genereren...</div>
+    <div class="copy-feedback" id="vif-copy-feedback"></div>
+    <div class="btn-row">
+      <button class="vif-btn vif-btn-primary" id="vif-btn-copy" onclick="vifCopyLink()" disabled>Kopieer naar clipboard</button>
+      <button class="vif-btn vif-btn-secondary" id="vif-btn-test" onclick="vifTestLink()" disabled>Test in nieuwe tab ↗</button>
+    </div>
+  </div>
+
+  <div class="notice">
+    <strong>Let op:</strong> Parameternamen zijn tijdelijk. Worden bijgewerkt zodra Loyals de definitieve namen voor <em>mxi.nl/evaluatie</em> doorgeeft.
+  </div>
+</div>
+
+<script>
+(function() {
+  // ─────────────────────────────────────────────
+  // AANPASSEN zodra Loyals de parameternamen geeft
+  var BASE_URL = 'https://mxi.nl/projectevaluatie';
+  var PARAMS = {
+    projectnr:   'project-nr',
+    project:     'project',
+    organisatie: 'organisatie',
+    beoordelaar: 'beoordelaar',
+    email:       'email',
+    medewerkers: 'medewerkers'
+  };
+  // ─────────────────────────────────────────────
+
+  var currentUrl = '';
+
+  function getValues() {
+    return {
+      projectnr:   document.getElementById('vif-projectnr').value.trim(),
+      project:     document.getElementById('vif-project').value.trim(),
+      organisatie: document.getElementById('vif-organisatie').value.trim(),
+      beoordelaar: document.getElementById('vif-beoordelaar').value.trim(),
+      email:       document.getElementById('vif-email').value.trim(),
+      medewerkers: document.getElementById('vif-medewerkers').value.trim()
+    };
+  }
+
+  window.vifGenerate = function() {
+    var v = getValues();
+    var box = document.getElementById('vif-result-url');
+    var hasAny = Object.values(v).some(function(x){ return x.length > 0; });
+
+    if (!hasAny) {
+      box.textContent = 'Vul bovenstaande velden in om een link te genereren...';
+      box.className = 'result-url vif-empty';
+      currentUrl = '';
+      document.getElementById('vif-btn-copy').disabled = true;
+      document.getElementById('vif-btn-test').disabled = true;
+      return;
+    }
+
+    var qp = new URLSearchParams();
+    if (v.projectnr)   qp.set(PARAMS.projectnr,   v.projectnr);
+    if (v.project)     qp.set(PARAMS.project,      v.project);
+    if (v.organisatie) qp.set(PARAMS.organisatie,  v.organisatie);
+    if (v.beoordelaar) qp.set(PARAMS.beoordelaar,  v.beoordelaar);
+    if (v.email)       qp.set(PARAMS.email,        v.email);
+    if (v.medewerkers) qp.set(PARAMS.medewerkers,  v.medewerkers);
+
+    currentUrl = BASE_URL + '?' + qp.toString();
+    box.textContent = currentUrl;
+    box.className = 'result-url';
+    document.getElementById('vif-btn-copy').disabled = false;
+    document.getElementById('vif-btn-test').disabled = false;
+  };
+
+  window.vifHandleSubmit = function() {
+    var v = getValues();
+    var required = ['vif-projectnr','vif-project','vif-organisatie','vif-beoordelaar','vif-medewerkers'];
+    var valid = true;
+    required.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el.value.trim()) { el.classList.add('vif-error'); valid = false; }
+      else { el.classList.remove('vif-error'); }
+    });
+    document.getElementById('vif-error-box').classList.toggle('visible', !valid);
+    if (valid) vifGenerate();
+  };
+
+  window.vifCopyLink = function() {
+    if (!currentUrl) return;
+    var fb = document.getElementById('vif-copy-feedback');
+    navigator.clipboard.writeText(currentUrl).then(function() {
+      fb.textContent = '✓ Link gekopieerd naar klembord!';
+      setTimeout(function(){ fb.textContent = ''; }, 3000);
+    }).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = currentUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      fb.textContent = '✓ Link gekopieerd!';
+      setTimeout(function(){ fb.textContent = ''; }, 3000);
+    });
+  };
+
+  window.vifTestLink = function() {
+    if (currentUrl) window.open(currentUrl, '_blank');
+  };
+
+  ['vif-projectnr','vif-project','vif-organisatie','vif-beoordelaar','vif-medewerkers'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+      this.classList.remove('vif-error');
+      document.getElementById('vif-error-box').classList.remove('visible');
+    });
+  });
+})();
+</script>
