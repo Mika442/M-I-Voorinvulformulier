@@ -10,7 +10,7 @@
   .vif-wrap { max-width: 680px; margin: 0 auto; padding: 32px 20px 60px; }
   .vif-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 3px solid #FFD000; }
   .vif-logo-mark { background: #006782; color: #fff; font-weight: 700; font-size: 13px; padding: 7px 10px; border-radius: 3px; letter-spacing: 0.03em; white-space: nowrap; }
-  .vif-logo-mark span { color: #FFD000; }
+  .vif-logo-mark .slash { color: #FFD000; }
   .vif-header-title { font-size: 18px; font-weight: 700; color: #006782; line-height: 1.2; }
   .vif-header-sub { font-size: 12px; color: #67757E; margin-top: 3px; }
   .error-box { background: #fff8e1; border: 1px solid #FFD000; border-left: 4px solid #006782; border-radius: 3px; padding: 10px 14px; font-size: 13px; color: #4A5C68; margin-bottom: 16px; display: none; }
@@ -24,7 +24,6 @@
   input[type="text"], input[type="email"] { width: 100%; padding: 9px 12px; border: 1px solid #c5d0d6; border-radius: 3px; font-size: 14px; font-family: inherit; color: #4A5C68; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: #fafcfd; }
   input[type="text"]:focus, input[type="email"]:focus { border-color: #006782; box-shadow: 0 0 0 2px rgba(0,103,130,0.10); background: #fff; }
   input.vif-error { border-color: #0082A6; background: #f0f8fb; }
-  .submit-row { margin-top: 22px; }
   .result-card { background: #fff; border: 1px solid #dce3e7; border-top: 3px solid #006782; border-radius: 4px; padding: 20px 24px; }
   .result-label { font-size: 13px; font-weight: 600; color: #4A5C68; margin-bottom: 8px; }
   .result-url { background: #f4f8fa; border: 1px solid #dce3e7; border-radius: 3px; padding: 10px 14px; font-size: 12px; font-family: 'Courier New', monospace; color: #4A5C68; word-break: break-all; line-height: 1.7; min-height: 44px; }
@@ -36,8 +35,6 @@
   .vif-btn-primary:hover:not(:disabled) { background: #004f65; }
   .vif-btn-secondary { background: #fff; color: #4A5C68; border: 1px solid #c5d0d6; }
   .vif-btn-secondary:hover:not(:disabled) { background: #f4f8fa; }
-  .vif-btn-submit { background: #006782; color: #fff; padding: 10px 28px; font-size: 14px; }
-  .vif-btn-submit:hover { background: #004f65; }
   .copy-feedback { font-size: 12px; color: #006782; min-height: 18px; margin-top: 6px; font-weight: 600; }
   .vif-footer { margin-top: 20px; padding-top: 14px; border-top: 1px solid #dce3e7; font-size: 11px; color: #a0b0b8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
 </style>
@@ -45,7 +42,7 @@
 <body>
 <div class="vif-wrap">
   <div class="vif-header">
-    <div class="vif-logo-mark">M<span>&</span>I/Partners</div>
+    <div class="vif-logo-mark">M&I<span class="slash">/</span>Partners</div>
     <div>
       <div class="vif-header-title">Projectevaluatie &mdash; voorinvulformulier</div>
       <div class="vif-header-sub">Intern gebruik &middot; Genereer een gepersonaliseerde evaluatielink voor de klant</div>
@@ -72,9 +69,6 @@
     <div class="field">
       <label>Medewerkers M&amp;I/Partners <span class="req">*</span></label>
       <input type="text" id="vif-medewerkers" placeholder="bijv. Anna Bakker, Tom Jansen" oninput="vifGenerate()">
-    </div>
-    <div class="submit-row">
-      <button class="vif-btn vif-btn-submit" onclick="vifHandleSubmit()">Genereer link</button>
     </div>
   </div>
   <div class="result-card">
@@ -104,20 +98,14 @@
     var hasAny = Object.values(v).some(function(x){ return x.length > 0; });
     if (!hasAny) { box.textContent = 'Vul bovenstaande velden in om een link te genereren...'; box.className = 'result-url vif-empty'; currentUrl = ''; document.getElementById('vif-btn-copy').disabled = true; document.getElementById('vif-btn-test').disabled = true; return; }
     var qp = new URLSearchParams();
-    if (v.projectnr) qp.set(PARAMS.projectnr, v.projectnr);
-    if (v.project) qp.set(PARAMS.project, v.project);
-    if (v.organisatie) qp.set(PARAMS.organisatie, v.organisatie);
-    if (v.email) qp.set(PARAMS.email, v.email);
-    if (v.medewerkers) qp.set(PARAMS.medewerkers, v.medewerkers);
+    if (v.projectnr)   qp.set(PARAMS.projectnr,   v.projectnr);
+    if (v.project)     qp.set(PARAMS.project,      v.project);
+    if (v.organisatie) qp.set(PARAMS.organisatie,  v.organisatie);
+    if (v.email)       qp.set(PARAMS.email,        v.email);
+    if (v.medewerkers) qp.set(PARAMS.medewerkers,  v.medewerkers);
     currentUrl = BASE_URL + '?' + qp.toString();
     box.textContent = currentUrl; box.className = 'result-url';
     document.getElementById('vif-btn-copy').disabled = false; document.getElementById('vif-btn-test').disabled = false;
-  };
-  window.vifHandleSubmit = function() {
-    var v = getValues(), valid = true;
-    ['vif-projectnr','vif-project','vif-organisatie','vif-medewerkers'].forEach(function(id) { var el = document.getElementById(id); if (!el.value.trim()) { el.classList.add('vif-error'); valid = false; } else { el.classList.remove('vif-error'); } });
-    document.getElementById('vif-error-box').classList.toggle('visible', !valid);
-    if (valid) vifGenerate();
   };
   window.vifCopyLink = function() {
     if (!currentUrl) return;
@@ -125,7 +113,6 @@
     navigator.clipboard.writeText(currentUrl).then(function() { fb.textContent = '\u2713 Link gekopieerd naar klembord!'; setTimeout(function(){ fb.textContent=''; }, 3000); }).catch(function() { var ta = document.createElement('textarea'); ta.value = currentUrl; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); fb.textContent = '\u2713 Link gekopieerd!'; setTimeout(function(){ fb.textContent=''; }, 3000); });
   };
   window.vifTestLink = function() { if (currentUrl) window.open(currentUrl, '_blank'); };
-  ['vif-projectnr','vif-project','vif-organisatie','vif-medewerkers'].forEach(function(id) { document.getElementById(id).addEventListener('input', function() { this.classList.remove('vif-error'); document.getElementById('vif-error-box').classList.remove('visible'); }); });
 })();
 </script>
 </body>
