@@ -99,7 +99,7 @@
   document.getElementById('vif-projectnr').placeholder = 'bijv. ' + yearPrefix + '123';
 
   function isValidProjectnr(val) {
-    return /^\d{5}$/.test(val) && val.startsWith(yearPrefix);
+    return /^\d{5}$/.test(val);
   }
 
   function getValues() {
@@ -123,7 +123,7 @@
     if (v.projectnr.length > 0) {
       if (!isValidProjectnr(v.projectnr)) {
         el.classList.add('vif-error');
-        hint.textContent = 'Voer een geldig projectnummer in dat begint met ' + yearPrefix + ' (bijv. ' + yearPrefix + '123).';
+        hint.textContent = 'Voer een geldig projectnummer in van 5 cijfers (bijv. ' + yearPrefix + '123).';
         hint.classList.add('visible');
         projectnrOk = false;
       } else {
