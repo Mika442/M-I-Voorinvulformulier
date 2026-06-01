@@ -23,7 +23,9 @@
   label .hint { font-weight: 400; color: #67757E; }
   input[type="text"], input[type="email"] { width: 100%; padding: 9px 12px; border: 1px solid #c5d0d6; border-radius: 3px; font-size: 14px; font-family: inherit; color: #4A5C68; outline: none; transition: border-color 0.15s, box-shadow 0.15s; background: #fafcfd; }
   input[type="text"]:focus, input[type="email"]:focus { border-color: #006782; box-shadow: 0 0 0 2px rgba(0,103,130,0.10); background: #fff; }
-  input.vif-error { border-color: #0082A6; background: #f0f8fb; }
+  input.vif-error { border-color: #c0392b; background: #fdf6f6; }
+  .field-hint { font-size: 12px; color: #c0392b; margin-top: 5px; display: none; }
+  .field-hint.visible { display: block; }
   .result-card { background: #fff; border: 1px solid #dce3e7; border-top: 3px solid #006782; border-radius: 4px; padding: 20px 24px; }
   .result-label { font-size: 13px; font-weight: 600; color: #4A5C68; margin-bottom: 8px; }
   .result-url { background: #f4f8fa; border: 1px solid #dce3e7; border-radius: 3px; padding: 10px 14px; font-size: 12px; font-family: 'Courier New', monospace; color: #4A5C68; word-break: break-all; line-height: 1.7; min-height: 44px; }
@@ -52,7 +54,8 @@
   <div class="card">
     <div class="field">
       <label>Projectnummer <span class="req">*</span></label>
-      <input type="text" id="vif-projectnr" placeholder="bijv. 26001" oninput="vifGenerate()">
+      <input type="text" id="vif-projectnr" oninput="vifGenerate()" maxlength="5">
+      <div class="field-hint" id="hint-projectnr"></div>
     </div>
     <div class="field">
       <label>Omschrijving project <span class="req">*</span></label>
@@ -90,28 +93,92 @@
   var BASE_URL = 'https://mxi.nl/evaluatie';
   var PARAMS = { projectnr:'project-nr', project:'project', organisatie:'organisatie', email:'email', medewerkers:'medewerkers' };
   var currentUrl = '';
-  function getValues() {
-    return { projectnr:document.getElementById('vif-projectnr').value.trim(), project:document.getElementById('vif-project').value.trim(), organisatie:document.getElementById('vif-organisatie').value.trim(), email:document.getElementById('vif-email').value.trim(), medewerkers:document.getElementById('vif-medewerkers').value.trim() };
+
+  // Stel placeholder in op basis van huidig jaar
+  var yearPrefix = String(new Date().getFullYear()).slice(-2);
+  document.getElementById('vif-projectnr').placeholder = 'bijv. ' + yearPrefix + '123';
+
+  function isValidProjectnr(val) {
+    return /^\d{5}$/.test(val) && val.startsWith(yearPrefix);
   }
+
+  function getValues() {
+    return {
+      projectnr:   document.getElementById('vif-projectnr').value.trim(),
+      project:     document.getElementById('vif-project').value.trim(),
+      organisatie: document.getElementById('vif-organisatie').value.trim(),
+      email:       document.getElementById('vif-email').value.trim(),
+      medewerkers: document.getElementById('vif-medewerkers').value.trim()
+    };
+  }
+
   window.vifGenerate = function() {
-    var v = getValues(), box = document.getElementById('vif-result-url');
-    var hasAny = Object.values(v).some(function(x){ return x.length > 0; });
-    if (!hasAny) { box.textContent = 'Vul bovenstaande velden in om een link te genereren...'; box.className = 'result-url vif-empty'; currentUrl = ''; document.getElementById('vif-btn-copy').disabled = true; document.getElementById('vif-btn-test').disabled = true; return; }
+    var v = getValues();
+    var box = document.getElementById('vif-result-url');
+    var hint = document.getElementById('hint-projectnr');
+    var el = document.getElementById('vif-projectnr');
+
+    // Valideer projectnummer
+    var projectnrOk = true;
+    if (v.projectnr.length > 0) {
+      if (!isValidProjectnr(v.projectnr)) {
+        el.classList.add('vif-error');
+        hint.textContent = 'Voer een geldig projectnummer in dat begint met ' + yearPrefix + ' (bijv. ' + yearPrefix + '123).';
+        hint.classList.add('visible');
+        projectnrOk = false;
+      } else {
+        el.classList.remove('vif-error');
+        hint.classList.remove('visible');
+      }
+    } else {
+      el.classList.remove('vif-error');
+      hint.classList.remove('visible');
+    }
+
+    var allRequired = v.projectnr && v.project && v.organisatie && v.medewerkers;
+    var canGenerate = allRequired && projectnrOk;
+
+    if (!canGenerate) {
+      box.textContent = 'Vul bovenstaande velden in om een link te genereren...';
+      box.className = 'result-url vif-empty';
+      currentUrl = '';
+      document.getElementById('vif-btn-copy').disabled = true;
+      document.getElementById('vif-btn-test').disabled = true;
+      return;
+    }
+
     var qp = new URLSearchParams();
-    if (v.projectnr)   qp.set(PARAMS.projectnr,   v.projectnr);
-    if (v.project)     qp.set(PARAMS.project,      v.project);
-    if (v.organisatie) qp.set(PARAMS.organisatie,  v.organisatie);
+    qp.set(PARAMS.projectnr,   v.projectnr);
+    qp.set(PARAMS.project,     v.project);
+    qp.set(PARAMS.organisatie, v.organisatie);
     if (v.email)       qp.set(PARAMS.email,        v.email);
-    if (v.medewerkers) qp.set(PARAMS.medewerkers,  v.medewerkers);
+    qp.set(PARAMS.medewerkers, v.medewerkers);
+
     currentUrl = BASE_URL + '?' + qp.toString();
-    box.textContent = currentUrl; box.className = 'result-url';
-    document.getElementById('vif-btn-copy').disabled = false; document.getElementById('vif-btn-test').disabled = false;
+    box.textContent = currentUrl;
+    box.className = 'result-url';
+    document.getElementById('vif-btn-copy').disabled = false;
+    document.getElementById('vif-btn-test').disabled = false;
   };
+
   window.vifCopyLink = function() {
     if (!currentUrl) return;
     var fb = document.getElementById('vif-copy-feedback');
-    navigator.clipboard.writeText(currentUrl).then(function() { fb.textContent = '\u2713 Link gekopieerd naar klembord!'; setTimeout(function(){ fb.textContent=''; }, 3000); }).catch(function() { var ta = document.createElement('textarea'); ta.value = currentUrl; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); fb.textContent = '\u2713 Link gekopieerd!'; setTimeout(function(){ fb.textContent=''; }, 3000); });
+    navigator.clipboard.writeText(currentUrl).then(function() {
+      fb.textContent = '\u2713 Link gekopieerd naar klembord!';
+      setTimeout(function(){ fb.textContent=''; }, 3000);
+    }).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = currentUrl;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      fb.textContent = '\u2713 Link gekopieerd!';
+      setTimeout(function(){ fb.textContent=''; }, 3000);
+    });
   };
+
   window.vifTestLink = function() { if (currentUrl) window.open(currentUrl, '_blank'); };
 })();
 </script>
